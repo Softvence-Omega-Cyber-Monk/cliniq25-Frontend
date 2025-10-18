@@ -1,0 +1,85 @@
+import { Client, Appointment, Stats } from './types';
+
+export const MOCK_CLIENT: Client = {
+  id: 'c1',
+  name: 'Sarah Johnson',
+  initials: 'S',
+  email: 'sarah.johnson@email.com',
+  phone: '(555) 123-4567',
+  status: 'active',
+  healthIssues: ['Generalized Anxiety Disorder', 'Panic Attacks', 'Work-related Stress'],
+};
+
+export const MOCK_APPOINTMENTS: Appointment[] = [
+  {
+    id: 'a1',
+    client: MOCK_CLIENT,
+    type: 'Initial Assessment',
+    scheduleStatus: 'Scheduled',
+    date: '2025-10-09',
+    time: '09:00 AM',
+    duration: 60,
+    sessionType: 'Virtual Session',
+  },
+  {
+    id: 'a2',
+    client: MOCK_CLIENT,
+    type: 'Initial Assessment',
+    scheduleStatus: 'Scheduled',
+    date: '2025-10-09',
+    time: '09:00 AM',
+    duration: 60,
+    sessionType: 'In-Person Session',
+  },
+  {
+    id: 'a3',
+    client: MOCK_CLIENT,
+    type: 'Initial Assessment',
+    scheduleStatus: 'Scheduled',
+    date: '2025-10-09',
+    time: '09:00 AM',
+    duration: 60,
+    sessionType: 'In-Person Session',
+  },
+  {
+    id: 'a4',
+    client: MOCK_CLIENT,
+    type: 'Initial Assessment',
+    scheduleStatus: 'Scheduled',
+    date: '2025-10-09',
+    time: '09:00 AM',
+    duration: 60,
+    sessionType: 'Virtual Session',
+  },
+  {
+    id: 'a5',
+    client: MOCK_CLIENT,
+    type: 'Initial Assessment',
+    scheduleStatus: 'Scheduled',
+    date: '2025-10-09',
+    time: '09:00 AM',
+    duration: 60,
+    sessionType: 'Virtual Session',
+  },
+  {
+    id: 'a6',
+    client: MOCK_CLIENT,
+    type: 'Initial Assessment',
+    scheduleStatus: 'Scheduled',
+    date: '2025-10-09',
+    time: '09:00 AM',
+    duration: 60,
+    sessionType: 'In-Person Session',
+  },
+];
+
+export const MOCK_STATS: Stats = {
+    totalAppointments: MOCK_APPOINTMENTS.length,
+    todaySessions: 1,
+    virtualSessions: 3,
+    inPersonSessions: 3,
+    totalAppointmentsDelta: 12.3,
+    todaySessionsDelta: 12.3,
+    virtualSessionsDelta: 12.3,
+    inPersonSessionsDelta: 12.3,
+};

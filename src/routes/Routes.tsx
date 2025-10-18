@@ -1,24 +1,50 @@
-import { createBrowserRouter } from "react-router-dom";
-import App from "../App";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import Layout from "../Layout/Layout";
 import About from "../pages/About";
 import Contact from "../pages/Contact";
 import NotFound from "../pages/NotFound";
-import Home from "../pages/Home";
 import AdminRoute from "./AdminRoutes";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Form from "@/pages/Form";
 import Services from "@/pages/Services";
+import Dashboard from "@/pages/Dashboard";
+import Clients from "@/pages/Clients";
+import Appointments from "@/pages/Appointments";
+import Reports from "@/pages/Reports";
+import Settings from "@/pages/Settings";
+import Support from "@/pages/Support";
 
 const routes = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <Layout />,
     children: [
+      { index: true, element: <Navigate to="/dashboard" replace /> },
       {
-        path: "/",
-        element: <Home />,
+        path: "/dashboard",
+        element: <Dashboard />,
+      },
+      {
+        path: "/clients",
+        element: <Clients />,
+      },
+      {
+        path: "/appointments",
+        element: <Appointments />,
+      },
+      {
+        path: "/reports",
+        element: <Reports />,
+      },
+      {
+        path: "/settings",
+        element: <Settings />,
+      },
+      {
+        path: "/support",
+        element: <Support />,
       },
       {
         path: "/about",

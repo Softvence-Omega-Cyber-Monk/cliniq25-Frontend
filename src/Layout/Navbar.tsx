@@ -18,7 +18,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
         ">
             <div className="flex justify-between items-start">
                 <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <h1 className="text-2xl font-bold text-gray-900">
                         Welcome
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

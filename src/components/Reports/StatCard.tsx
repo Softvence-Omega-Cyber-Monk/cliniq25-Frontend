@@ -1,22 +1,25 @@
-import { FC } from 'react';
-import Icon from './Icon';
-import { StatCardProps } from './types';
+import React from 'react';
 
-const StatCard: FC<StatCardProps> = ({ title, value, percentage, icon }) => (
-  <div className="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl flex flex-col justify-between h-full">
-    <div className="flex justify-end items-center mb-4">
-      <div className="flex items-center space-x-2 p-1.5 rounded-lg bg-emerald-50">
-        <Icon name={icon} />
-        <span className="text-xs font-semibold text-emerald-600">
-          {percentage}%
-        </span>
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  iconBgColor: string;
+  iconTextColor: string;
+}
+
+export const StatCard: React.FC<StatCardProps> = ({ title, value, icon, iconBgColor, iconTextColor }) => {
+  return (
+    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center gap-5 transition-transform duration-300 hover:scale-105 hover:shadow-lg">
+      <div className={`p-3 rounded-lg ${iconBgColor} ${iconTextColor}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-slate-500">{title}</p>
+        <p className="text-3xl font-bold text-slate-800">{value}</p>
       </div>
     </div>
-    <div>
-      <h3 className="text-sm text-gray-500 font-medium mb-1">{title}</h3>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
-    </div>
-  </div>
-);
+  );
+};
 
 export default StatCard;

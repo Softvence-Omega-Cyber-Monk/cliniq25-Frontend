@@ -1,8 +1,10 @@
 export interface StatCardProps {
   title: string;
-  value: number | string;
+  value: string;
   percentage: number;
   icon: 'clock' | 'users' | 'chart' | 'hourglass';
+  iconBgColor: string;
+  iconTextColor: string;
 }
 
 export interface ReportCardProps {

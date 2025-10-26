@@ -16,7 +16,7 @@ const ContactCard: React.FC<ContactDetail> = ({ icon: Icon, title, description, 
       
       <ButtonTag
         href={href}
-        className={`w-full py-2.5 text-sm font-medium rounded-lg transition-colors border ${
+        className={`w-full py-2.5 text-sm font-medium rounded-lg transition-colors border flex justify-center items-center ${
           isLink
             ? 'bg-transparent border-emerald-500 text-emerald-600 hover:bg-emerald-50'
             : 'bg-emerald-500 text-white hover:bg-emerald-600 border-emerald-500'

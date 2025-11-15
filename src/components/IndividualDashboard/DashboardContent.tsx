@@ -1,5 +1,4 @@
 import React from 'react';
-import Header from './Header';
 import StatCard from './StatCard';
 import SessionsCompletionChart from './SessionsCompletionChart';
 import TherapistActivityChart from './TherapistActivityChart';
@@ -7,6 +6,7 @@ import RecentSessions from './RecentSessions';
 import SystemAlerts from './SystemAlerts';
 import type { StatCardType } from '../../types/dashboard';
 import { StatUserIcon, StatCalendarIcon, StatAlertIcon, StatCheckIcon } from '../icons';
+import { FaPlus } from 'react-icons/fa';
 
 const statCards: StatCardType[] = [
   {
@@ -30,7 +30,7 @@ const statCards: StatCardType[] = [
     value: '3',
     icon: StatAlertIcon,
     iconBgColor: 'bg-red-100 text-red-600',
-    trend: 'up', 
+    trend: 'up',
   },
   {
     title: 'Completed Sessions',
@@ -44,7 +44,12 @@ const statCards: StatCardType[] = [
 const DashboardContent: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 flex-1">
-      <Header />
+      <div className='pl-289'>
+        <div className='flex gap-[12px]'>
+          <button className='py-[10px] px-[11px] bg-[#32363F] text-[#fff] flex items-center gap-2 rounded-[12px]'><FaPlus /> Add New Therapist</button>
+          <button className='py-[10px] px-[11px] bg-[#3FDCBF] text-[#fff] flex items-center gap-2 rounded-[12px]'><FaPlus /> Add New Client</button>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
         {statCards.map((card) => (
           <StatCard key={card.title} {...card} />

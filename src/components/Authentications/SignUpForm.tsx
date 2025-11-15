@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Role } from './types';
 import { UserIcon, UsersIcon, ChevronDownIcon } from './Icons';
+import { useRegisterClinicMutation } from '@/store/api/apiSlice';
 
 interface SignUpFormProps {
   initialRole: Role;
@@ -10,8 +11,8 @@ interface SignUpFormProps {
 }
 
 type FormData = {
-  name: string;
-  practiceName?: string;
+  fullName: string;
+  privatePracticeName?: string;
   countryCode: string;
   phone: string;
   email: string;
@@ -255,8 +256,8 @@ const RoleSelector: React.FC<{
         aria-expanded={isOpen}
       >
         <span className="flex items-center">
-          <span className="mr-3 text-clinic-accent">{roleData[selectedRole].icon}</span>
-          {roleData[selectedRole].label}
+          <span className="mr-3 text-clinic-accent">{roleData[selectedRole as keyof typeof roleData].icon}</span>
+          {roleData[selectedRole as keyof typeof roleData].label}
         </span>
         <ChevronDownIcon 
           className={`w-5 h-5 ml-2 text-gray-400 transform transition-transform ${
@@ -267,15 +268,15 @@ const RoleSelector: React.FC<{
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
           <ul className="py-1" role="listbox">
-            {Object.values(Role).map((role) => (
+            {Object.keys(roleData).map((role) => (
               <li key={role} role="option">
                 <button
                   type="button"
-                  onClick={() => handleSelect(role)}
+                  onClick={() => handleSelect(role as Role)}
                   className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center focus:outline-none focus:bg-gray-50"
                 >
-                  <span className="mr-3 text-gray-500">{roleData[role].icon}</span>
-                  {roleData[role].label}
+                  <span className="mr-3 text-gray-500">{roleData[role as keyof typeof roleData].icon}</span>
+                  {roleData[role as keyof typeof roleData].label}
                 </button>
               </li>
             ))}
@@ -356,7 +357,7 @@ const CountrySelector: React.FC<{
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSwitchToLogin }) => {
   const [currentRole, setCurrentRole] = useState<Role>(initialRole);
-  const [isLoading, setIsLoading] = useState(false);
+  const [registerClinic, { isLoading }] = useRegisterClinicMutation();
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
     defaultValues: {
       countryCode: '+1'
@@ -368,18 +369,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSwitchToLogin })
   const countryCode = watch("countryCode");
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log({ ...data, role: currentRole });
+      const payload = {
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+        phone: `${data.countryCode}${data.phone}`,
+        ...(currentRole === Role.PRIVATE_PRACTICE && { privatePracticeName: data.privatePracticeName }),
+      };
+      await registerClinic(payload).unwrap();
       alert("Account created successfully! Please log in.");
       onSwitchToLogin();
     } catch (error) {
       console.error('Signup error:', error);
       alert("Account creation failed. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -421,13 +424,13 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSwitchToLogin })
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label htmlFor="name" className="text-sm font-bold text-gray-700 block mb-2">
+              <label htmlFor="fullName" className="text-sm font-bold text-gray-700 block mb-2">
                 Your Name
               </label>
               <input 
-                id="name"
+                id="fullName"
                 type="text"
-                {...register("name", { 
+                {...register("fullName", { 
                   required: "Name is required",
                   minLength: {
                     value: 2,
@@ -436,26 +439,26 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSwitchToLogin })
                 })} 
                 placeholder="Enter your full name"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-clinic-primary focus:border-transparent transition-colors bg-[#fff]"
-                aria-describedby={errors.name ? "name-error" : undefined}
+                aria-describedby={errors.fullName ? "fullName-error" : undefined}
                 disabled={isLoading}
               />
-              {errors.name && (
-                <p id="name-error" className="text-red-500 text-xs mt-2 flex items-center">
+              {errors.fullName && (
+                <p id="fullName-error" className="text-red-500 text-xs mt-2 flex items-center">
                   <span className="mr-1">⚠</span>
-                  {errors.name.message}
+                  {errors.fullName.message}
                 </p>
               )}
             </div>
 
             {currentRole === Role.PRIVATE_PRACTICE && (
               <div>
-                <label htmlFor="practiceName" className="text-sm font-bold text-gray-700 block mb-2">
+                <label htmlFor="privatePracticeName" className="text-sm font-bold text-gray-700 block mb-2">
                   Private Practice Name
                 </label>
                 <input 
-                  id="practiceName"
+                  id="privatePracticeName"
                   type="text"
-                  {...register("practiceName", { 
+                  {...register("privatePracticeName", { 
                     required: "Practice name is required",
                     minLength: {
                       value: 2,
@@ -464,13 +467,13 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSwitchToLogin })
                   })} 
                   placeholder="Enter your practice name"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-clinic-primary focus:border-transparent transition-colors bg-[#fff]"
-                  aria-describedby={errors.practiceName ? "practiceName-error" : undefined}
+                  aria-describedby={errors.privatePracticeName ? "privatePracticeName-error" : undefined}
                   disabled={isLoading}
                 />
-                {errors.practiceName && (
-                  <p id="practiceName-error" className="text-red-500 text-xs mt-2 flex items-center">
+                {errors.privatePracticeName && (
+                  <p id="privatePracticeName-error" className="text-red-500 text-xs mt-2 flex items-center">
                     <span className="mr-1">⚠</span>
-                    {errors.practiceName.message}
+                    {errors.privatePracticeName.message}
                   </p>
                 )}
               </div>

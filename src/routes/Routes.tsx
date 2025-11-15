@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Layout from "../Layout/Layout";
 import IndividualLayout from "../Layout/IndividualLayout";
 import About from "../pages/About";
@@ -32,7 +32,7 @@ const routes = createBrowserRouter([
         path: "/",
         element: <Layout />,
         children: [
-          { index: true, element: <Navigate to="/dashboard" replace /> },
+         
           {
             path: "/dashboard",
             element: <Dashboard />,

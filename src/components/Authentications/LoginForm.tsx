@@ -4,9 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { login } from '../../store/Slices/AuthSlice/authSlice';
+import { login as authSliceLogin } from '../../store/Slices/AuthSlice/authSlice';
 import { Role } from './types';
 import { UserIcon, UsersIcon, ChevronDownIcon } from './Icons';
+import { useLoginMutation } from '@/store/api/apiSlice';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -61,8 +62,8 @@ const RoleSelector: React.FC<{
         aria-expanded={isOpen}
       >
         <span className="flex items-center">
-          <span className="mr-3 text-clinic-accent">{roleData[selectedRole].icon}</span>
-          {roleData[selectedRole].label}
+          <span className="mr-3 text-clinic-accent">{roleData[selectedRole as keyof typeof roleData].icon}</span>
+          {roleData[selectedRole as keyof typeof roleData].label}
         </span>
         <ChevronDownIcon 
           className={`w-5 h-5 ml-2 text-gray-400 transform transition-transform ${
@@ -73,15 +74,15 @@ const RoleSelector: React.FC<{
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
           <ul className="py-1" role="listbox">
-            {Object.values(Role).map((role) => (
+            {Object.keys(roleData).map((role) => (
               <li key={role} role="option">
                 <button
                   type="button"
-                  onClick={() => handleSelect(role)}
+                  onClick={() => handleSelect(role as Role)}
                   className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center focus:outline-none focus:bg-gray-50"
                 >
-                  <span className="mr-3 text-gray-500">{roleData[role].icon}</span>
-                  {roleData[role].label}
+                  <span className="mr-3 text-gray-500">{roleData[role as keyof typeof roleData].icon}</span>
+                  {roleData[role as keyof typeof roleData].label}
                 </button>
               </li>
             ))}
@@ -93,7 +94,8 @@ const RoleSelector: React.FC<{
 };
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<LoginFormInputs>({
+  const [login, { isLoading }] = useLoginMutation();
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       role: Role.INDIVIDUAL,
@@ -104,13 +106,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
   const dispatch = useDispatch();
   const currentRole = watch("role");
 
-  const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
-    console.log("Login Data:", data);
-    dispatch(login({ role: data.role === Role.PRIVATE_PRACTICE ? "admin" : "user" }));
-    if (data.role === Role.PRIVATE_PRACTICE) {
-       navigate("/user-dashboard");
-    } else if (data.role === Role.INDIVIDUAL) {
-     navigate("/dashboard");
+  const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
+    try {
+      const userType = "THERAPIST"; // Both INDIVIDUAL and PRIVATE_PRACTICE are therapists
+      await login({ email: data.email, password: data.password, userType }).unwrap();
+      
+      // Dispatch to authSlice to update local state (e.g., store token, user info)
+      const role = "user"; // All therapists map to the 'user' role for frontend routing
+      dispatch(authSliceLogin({ role }));
+      navigate("/user-dashboard");
+    } catch (error) {
+      console.error('Login error:', error);
+      alert("Login failed. Please check your credentials and try again.");
     }
   };
 
@@ -121,7 +128,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
           <RoleSelector 
             selectedRole={currentRole} 
             onRoleChange={(role) => setValue('role', role, { shouldValidate: true })}
-            disabled={isSubmitting}
+            disabled={isLoading}
           />
            {errors.role && (
                 <p id="login-role-error" className="text-red-500 text-xs mt-2 flex items-center">
@@ -136,7 +143,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
             type="button"
             onClick={onSwitchToSignUp} 
             className="font-bold text-clinic-accent hover:underline focus:outline-none focus:ring-2 focus:ring-clinic-accent focus:ring-offset-2 rounded text-[#3FDCBF]"
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             Register
           </button>
@@ -159,7 +166,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-clinic-primary focus:border-transparent transition-colors bg-[#fff]"
                 aria-describedby={errors.email ? "login-email-error" : undefined}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
               {errors.email && (
                 <p id="login-email-error" className="text-red-500 text-xs mt-2 flex items-center">
@@ -180,7 +187,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
                 placeholder="Enter your password"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-clinic-primary focus:border-transparent transition-colors bg-[#fff]"
                 aria-describedby={errors.password ? "login-password-error" : undefined}
-                disabled={isSubmitting}
+                disabled={isLoading}
               />
               {errors.password && (
                 <p id="login-password-error" className="text-red-500 text-xs mt-2 flex items-center">
@@ -192,10 +199,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
             
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isLoading}
               className="w-full bg-[#298CDF] text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-clinic-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? (
+              {isLoading ? (
                 <span className="flex items-center justify-center">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

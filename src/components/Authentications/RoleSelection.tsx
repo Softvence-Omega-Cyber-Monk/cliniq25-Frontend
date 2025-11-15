@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Role } from './types';
 import { UserIcon, UsersIcon } from './Icons';
+
 interface RoleSelectionProps {
     onContinue: (role: Role) => void;
     onSwitchToLogin: () => void;
+    selectedRole: Role;
+    onRoleChange: (role: Role) => void;
 }
+
 const RoleCard: React.FC<{
     role: Role;
     title: string;
@@ -31,8 +35,8 @@ const RoleCard: React.FC<{
         </div>
     );
 };
-const RoleSelection: React.FC<RoleSelectionProps> = ({ onContinue, onSwitchToLogin }) => {
-    const [selectedRole, setSelectedRole] = useState<Role>(Role.PRIVATE_PRACTICE);
+
+const RoleSelection: React.FC<RoleSelectionProps> = ({ onContinue, onSwitchToLogin, selectedRole, onRoleChange }) => {
     return (
         <div className="flex flex-col h-full">
             <div className="text-right mt-5 mr-[80px]">
@@ -54,7 +58,7 @@ const RoleSelection: React.FC<RoleSelectionProps> = ({ onContinue, onSwitchToLog
                             description="Lorem ipsum dolor sit amet consectetur. Aliquet ac arcu nullam nunc aliquet."
                             icon={<UserIcon className="w-6 h-6" />}
                             isSelected={selectedRole === Role.INDIVIDUAL}
-                            onSelect={() => setSelectedRole(Role.INDIVIDUAL)}
+                            onSelect={() => onRoleChange(Role.INDIVIDUAL)}
                         />
                         <RoleCard
                             role={Role.PRIVATE_PRACTICE}
@@ -62,7 +66,7 @@ const RoleSelection: React.FC<RoleSelectionProps> = ({ onContinue, onSwitchToLog
                             description="Lorem ipsum dolor sit amet consectetur. Aliquet ac arcu nullam nunc aliquet."
                             icon={<UsersIcon className="w-6 h-6" />}
                             isSelected={selectedRole === Role.PRIVATE_PRACTICE}
-                            onSelect={() => setSelectedRole(Role.PRIVATE_PRACTICE)}
+                            onSelect={() => onRoleChange(Role.PRIVATE_PRACTICE)}
                         />
                     </div>
                     <div className="mt-8">

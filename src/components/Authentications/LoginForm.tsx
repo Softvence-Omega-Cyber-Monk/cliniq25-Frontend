@@ -1,16 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../../store/Slices/AuthSlice/authSlice';
 import { Role } from './types';
 import { UserIcon, UsersIcon, ChevronDownIcon } from './Icons';
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.nativeEnum(Role, {
+    required_error: "Please select a role",
+  }),
+});
+
+type LoginFormInputs = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSwitchToSignUp: () => void;
 }
-
-type FormData = {
-  email: string;
-  password: string;
-};
 
 const RoleSelector: React.FC<{ 
   selectedRole: Role; 
@@ -21,8 +31,8 @@ const RoleSelector: React.FC<{
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const roleData = {
-    [Role.PRIVATE_PRACTICE]: { icon: <UsersIcon className="w-5 h-5" />, label: 'PRIVATE PRACTICE' },
-    [Role.INDIVIDUAL]: { icon: <UserIcon className="w-5 h-5" />, label: 'INDIVIDUAL' },
+    [Role.PRIVATE_PRACTICE]: { icon: <UserIcon className="w-5 h-5" />, label: 'PRIVATE PRACTICE' },
+    [Role.INDIVIDUAL]: { icon: <UsersIcon className="w-5 h-5" />, label: 'INDIVIDUAL' },
   };
 
   useEffect(() => {
@@ -83,22 +93,24 @@ const RoleSelector: React.FC<{
 };
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentRole, setCurrentRole] = useState<Role>(Role.INDIVIDUAL);
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      role: Role.INDIVIDUAL,
+    }
+  });
   
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Login data:', { ...data, role: currentRole });
-      alert("Logged in successfully!");
-    } catch (error) {
-      console.error('Login error:', error);
-      alert("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const currentRole = watch("role");
+
+  const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
+    console.log("Login Data:", data);
+    dispatch(login({ role: data.role === Role.PRIVATE_PRACTICE ? "admin" : "user" }));
+    if (data.role === Role.PRIVATE_PRACTICE) {
+       navigate("/user-dashboard");
+    } else if (data.role === Role.INDIVIDUAL) {
+     navigate("/dashboard");
     }
   };
 
@@ -108,9 +120,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
         <div className="w-auto">
           <RoleSelector 
             selectedRole={currentRole} 
-            onRoleChange={setCurrentRole}
-            disabled={isLoading}
+            onRoleChange={(role) => setValue('role', role, { shouldValidate: true })}
+            disabled={isSubmitting}
           />
+           {errors.role && (
+                <p id="login-role-error" className="text-red-500 text-xs mt-2 flex items-center">
+                  <span className="mr-1">⚠</span>
+                  {errors.role.message}
+                </p>
+              )}
         </div>
         <p className="text-sm">
           Don't have an account?{' '}
@@ -118,7 +136,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
             type="button"
             onClick={onSwitchToSignUp} 
             className="font-bold text-clinic-accent hover:underline focus:outline-none focus:ring-2 focus:ring-clinic-accent focus:ring-offset-2 rounded text-[#3FDCBF]"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
             Register
           </button>
@@ -137,17 +155,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
               <input
                 id="login-email"
                 type="email"
-                {...register("email", { 
-                  required: "Email is required", 
-                  pattern: { 
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, 
-                    message: "Please enter a valid email address" 
-                  } 
-                })}
+                {...register("email")}
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-clinic-primary focus:border-transparent transition-colors bg-[#fff]"
                 aria-describedby={errors.email ? "login-email-error" : undefined}
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               {errors.email && (
                 <p id="login-email-error" className="text-red-500 text-xs mt-2 flex items-center">
@@ -164,17 +176,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
               <input
                 id="login-password"
                 type="password"
-                {...register("password", { 
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Password must be at least 6 characters"
-                  }
-                })}
+                {...register("password")}
                 placeholder="Enter your password"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-clinic-primary focus:border-transparent transition-colors bg-[#fff]"
                 aria-describedby={errors.password ? "login-password-error" : undefined}
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               {errors.password && (
                 <p id="login-password-error" className="text-red-500 text-xs mt-2 flex items-center">
@@ -186,10 +192,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp }) => {
             
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="w-full bg-[#298CDF] text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-clinic-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <span className="flex items-center justify-center">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
